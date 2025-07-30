@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Clock App</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-clock"></i> Digital Clock App</h1>
+            <div class="theme-toggle">
+                <label class="theme-switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider">
+                        <i class="fas fa-sun"></i>
+                        <i class="fas fa-moon"></i>
+                    </span>
+                </label>
+            </div>
+        </header>
+        
+        <nav class="tab-navigation">
+            <button class="tab-btn active" data-tab="clock">
+                <i class="fas fa-clock"></i> Clock
+            </button>
+            <button class="tab-btn" data-tab="timer">
+                <i class="fas fa-hourglass-half"></i> Timer
+            </button>
+            <button class="tab-btn" data-tab="stopwatch">
+                <i class="fas fa-stopwatch"></i> Stopwatch
+            </button>
+            <button class="tab-btn" data-tab="alarm">
+                <i class="fas fa-bell"></i> Alarm
+            </button>
+        </nav>
+
+        <main class="tab-content">
+            <!-- Clock Tab -->
+            <div id="clock" class="tab-pane active">
+                <div class="clock-display">
+                    <div class="time" id="current-time">00:00:00</div>
+                    <div class="date" id="current-date">January 1, 2024</div>
+                    <div class="day" id="current-day">Monday</div>
+                </div>
+            </div>
+
+            <!-- Timer Tab -->
+            <div id="timer" class="tab-pane">
+                <div class="timer-display">
+                    <div class="time" id="timer-display">00:00:00</div>
+                </div>
+                <div class="timer-controls">
+                    <div class="time-input">
+                        <input type="number" id="hours" placeholder="0" min="0" max="23">
+                        <label>Hours</label>
+                    </div>
+                    <div class="time-input">
+                        <input type="number" id="minutes" placeholder="0" min="0" max="59">
+                        <label>Minutes</label>
+                    </div>
+                    <div class="time-input">
+                        <input type="number" id="seconds" placeholder="0" min="0" max="59">
+                        <label>Seconds</label>
+                    </div>
+                </div>
+                <div class="timer-buttons">
+                    <button id="start-timer" class="btn btn-primary">
+                        <i class="fas fa-play"></i> Start
+                    </button>
+                    <button id="pause-timer" class="btn btn-secondary" disabled>
+                        <i class="fas fa-pause"></i> Pause
+                    </button>
+                    <button id="reset-timer" class="btn btn-danger">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stopwatch Tab -->
+            <div id="stopwatch" class="tab-pane">
+                <div class="stopwatch-display">
+                    <div class="time" id="stopwatch-display">00:00:00.00</div>
+                </div>
+                <div class="stopwatch-controls">
+                    <button id="start-stopwatch" class="btn btn-primary">
+                        <i class="fas fa-play"></i> Start
+                    </button>
+                    <button id="reset-stopwatch" class="btn btn-danger">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                    <button id="lap-stopwatch" class="btn btn-info" disabled>
+                        <i class="fas fa-flag"></i> Lap
+                    </button>
+                </div>
+                <div class="lap-times" id="lap-times"></div>
+            </div>
+
+            <!-- Alarm Tab -->
+            <div id="alarm" class="tab-pane">
+                <div class="alarm-setup">
+                    <div class="time-input-group">
+                        <input type="time" id="alarm-time" class="time-picker">
+                        <label>Alarm Time</label>
+                    </div>
+                    <div class="alarm-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="alarm-repeat">
+                            <span class="checkmark"></span>
+                            Repeat Daily
+                        </label>
+                    </div>
+                    <button id="set-alarm" class="btn btn-primary">
+                        <i class="fas fa-bell"></i> Set Alarm
+                    </button>
+                </div>
+                <div class="alarm-list" id="alarm-list">
+                    <h3>Active Alarms</h3>
+                    <div class="no-alarms" id="no-alarms">No alarms set</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="notification-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="notification-title">Alarm!</h2>
+            <p id="notification-message">Time's up!</p>
+            <button id="dismiss-notification" class="btn btn-primary">Dismiss</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
