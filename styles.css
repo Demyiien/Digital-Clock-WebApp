@@ -13,7 +13,7 @@
     --text-secondary: #6c757d;
     --text-muted: #adb5bd;
     --border-color: #dee2e6;
-    --shadow-color: rgba(0, 0, 0, 0.1);
+    --shadow-color: rgb(14 12 12 / 30%);
     --glass-bg: rgba(255, 255, 255, 0.95);
     --glass-border: rgba(255, 255, 255, 0.2);
     --btn-primary-bg: linear-gradient(45deg, #6c757d, #495057);
@@ -33,7 +33,7 @@
     --text-secondary: #adb5bd;
     --text-muted: #6c757d;
     --border-color: #495057;
-    --shadow-color: rgba(0, 0, 0, 0.3);
+    --shadow-color: rgb(14 12 12 / 30%);
     --glass-bg: rgba(52, 58, 64, 0.95);
     --glass-border: rgba(255, 255, 255, 0.1);
     --btn-primary-bg: linear-gradient(45deg, #495057, #343a40);
@@ -221,6 +221,25 @@ header h1 i {
     animation: fadeIn 0.5s ease-in-out;
 }
 
+/* Stopwatch specific styling */
+#stopwatch.tab-pane {
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
+#stopwatch.tab-pane.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure other tabs maintain their original display */
+#clock.tab-pane.active,
+#timer.tab-pane.active,
+#alarm.tab-pane.active {
+    display: block;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -380,31 +399,37 @@ header h1 i {
     box-shadow: 0 5px 15px var(--shadow-color);
 }
 
-/* Stopwatch Display */
-.stopwatch-display {
+/* Stopwatch Display - Only visible in stopwatch tab */
+#stopwatch.tab-pane .stopwatch-display {
     text-align: center;
     margin-bottom: 30px;
+    position: sticky;
+    top: 0;
+    background: var(--glass-bg);
+    padding: 20px 0;
+    z-index: 10;
 }
 
-.stopwatch-display .time {
+#stopwatch.tab-pane .stopwatch-display .time {
     font-size: 4rem;
     font-weight: 900;
     color: var(--text-primary);
     text-shadow: 2px 2px 4px var(--shadow-color);
 }
 
-/* Lap Times */
-.lap-times {
+/* Lap Times - Only visible in stopwatch tab */
+#stopwatch.tab-pane .lap-times {
     margin-top: 30px;
-    max-height: 200px;
+    max-height: 300px;
     overflow-y: auto;
     border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 10px;
     background: var(--bg-secondary);
+    min-height: 100px;
 }
 
-.lap-time {
+#stopwatch.tab-pane .lap-time {
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
@@ -414,12 +439,91 @@ header h1 i {
     color: var(--text-primary);
 }
 
-.lap-time:last-child {
+#stopwatch.tab-pane .lap-time:last-child {
     border-bottom: none;
 }
 
-.lap-time:last-child {
-    border-bottom: none;
+/* AGGRESSIVE STOPWATCH HIDING - Hide all stopwatch elements by default */
+.stopwatch-display,
+.lap-times,
+.stopwatch-controls {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
+}
+
+/* Hide the entire stopwatch tab when not active */
+#stopwatch.tab-pane {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
+}
+
+/* Only show stopwatch tab when active */
+#stopwatch.tab-pane.active {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    flex-direction: column !important;
+}
+
+/* Only show stopwatch elements when stopwatch tab is ACTIVE */
+#stopwatch.tab-pane.active .stopwatch-display,
+#stopwatch.tab-pane.active .lap-times {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+}
+
+#stopwatch.tab-pane.active .stopwatch-controls {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+}
+
+/* Force hide stopwatch elements in ALL other tabs */
+#clock.tab-pane .stopwatch-display,
+#timer.tab-pane .stopwatch-display,
+#alarm.tab-pane .stopwatch-display,
+#clock.tab-pane .lap-times,
+#timer.tab-pane .lap-times,
+#alarm.tab-pane .lap-times,
+#clock.tab-pane .stopwatch-controls,
+#timer.tab-pane .stopwatch-controls,
+#alarm.tab-pane .stopwatch-controls {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
+}
+
+/* Additional safety rules */
+.tab-pane:not(#stopwatch) .stopwatch-display,
+.tab-pane:not(#stopwatch) .lap-times,
+.tab-pane:not(#stopwatch) .stopwatch-controls {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
 }
 
 /* Alarm Setup */
@@ -613,6 +717,17 @@ header h1 i {
     font-size: 1.1rem;
 }
 
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.modal-buttons .btn {
+    min-width: 120px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {
@@ -658,8 +773,19 @@ header h1 i {
     
     .clock-display .time,
     .timer-display .time,
-    .stopwatch-display .time {
+    #stopwatch.tab-pane .stopwatch-display .time {
         font-size: 2.5rem;
+    }
+    
+    #stopwatch.tab-pane {
+        min-height: 400px;
+    }
+    
+    /* Ensure other tabs maintain their original display on mobile */
+    #clock.tab-pane.active,
+    #timer.tab-pane.active,
+    #alarm.tab-pane.active {
+        display: block;
     }
     
     .timer-controls {
@@ -691,8 +817,19 @@ header h1 i {
 @media (max-width: 480px) {
     .clock-display .time,
     .timer-display .time,
-    .stopwatch-display .time {
+    #stopwatch.tab-pane .stopwatch-display .time {
         font-size: 2rem;
+    }
+    
+    #stopwatch.tab-pane {
+        min-height: 350px;
+    }
+    
+    /* Ensure other tabs maintain their original display on small mobile */
+    #clock.tab-pane.active,
+    #timer.tab-pane.active,
+    #alarm.tab-pane.active {
+        display: block;
     }
     
     .timer-controls {

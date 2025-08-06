@@ -5,6 +5,10 @@ let stopwatchInterval = null;
 let alarmInterval = null;
 let alarms = JSON.parse(localStorage.getItem('alarms')) || [];
 let currentTheme = localStorage.getItem('theme') || 'light';
+let alarmAudioContext = null;
+let alarmOscillator = null;
+let alarmGainNode = null;
+let isAlarmPlaying = false;
 
 // DOM elements
 const tabButtons = document.querySelectorAll('.tab-btn');
@@ -41,6 +45,7 @@ const notificationModal = document.getElementById('notification-modal');
 const notificationTitle = document.getElementById('notification-title');
 const notificationMessage = document.getElementById('notification-message');
 const dismissNotificationBtn = document.getElementById('dismiss-notification');
+const stopAlarmBtn = document.getElementById('stop-alarm');
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -88,6 +93,30 @@ function switchTab(tabName) {
     // Add active class to selected tab and pane
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
     document.getElementById(tabName).classList.add('active');
+    
+    // Force hide stopwatch tab if switching to other tabs
+    if (tabName !== 'stopwatch') {
+        const stopwatchTab = document.getElementById('stopwatch');
+        if (stopwatchTab) {
+            stopwatchTab.style.display = 'none';
+            stopwatchTab.style.visibility = 'hidden';
+            stopwatchTab.style.opacity = '0';
+            stopwatchTab.style.position = 'absolute';
+            stopwatchTab.style.left = '-9999px';
+            stopwatchTab.style.top = '-9999px';
+        }
+    } else {
+        // Show stopwatch tab when switching to it
+        const stopwatchTab = document.getElementById('stopwatch');
+        if (stopwatchTab) {
+            stopwatchTab.style.display = 'flex';
+            stopwatchTab.style.visibility = 'visible';
+            stopwatchTab.style.opacity = '1';
+            stopwatchTab.style.position = 'static';
+            stopwatchTab.style.left = 'auto';
+            stopwatchTab.style.top = 'auto';
+        }
+    }
     
     currentTab = tabName;
 }
@@ -144,12 +173,43 @@ function initializeTimer() {
         if (this.value === '0') this.value = '';
     });
     
+    // Add input validation for minutes and seconds (max 60)
+    minutesInput.addEventListener('input', function() {
+        let value = parseInt(this.value) || 0;
+        if (value > 60) {
+            this.value = '60';
+        } else if (value < 0) {
+            this.value = '0';
+        }
+    });
+    
+    secondsInput.addEventListener('input', function() {
+        let value = parseInt(this.value) || 0;
+        if (value > 60) {
+            this.value = '60';
+        } else if (value < 0) {
+            this.value = '0';
+        }
+    });
+    
     function startTimer() {
         if (!isTimerRunning) {
             // Always get time from inputs when starting
             const hours = parseInt(hoursInput.value) || 0;
-            const minutes = parseInt(minutesInput.value) || 0;
-            const seconds = parseInt(secondsInput.value) || 0;
+            let minutes = parseInt(minutesInput.value) || 0;
+            let seconds = parseInt(secondsInput.value) || 0;
+            
+            // Validate minutes and seconds
+            if (minutes > 60) {
+                alert('Minutes cannot exceed 60!');
+                minutesInput.value = '60';
+                minutes = 60;
+            }
+            if (seconds > 60) {
+                alert('Seconds cannot exceed 60!');
+                secondsInput.value = '60';
+                seconds = 60;
+            }
             
             timerSeconds = hours * 3600 + minutes * 60 + seconds;
             originalTime = timerSeconds;
@@ -162,6 +222,9 @@ function initializeTimer() {
             isTimerRunning = true;
             startTimerBtn.disabled = true;
             pauseTimerBtn.disabled = false;
+            
+            // Update display immediately
+            updateTimerDisplay();
             
             timerInterval = setInterval(() => {
                 timerSeconds--;
@@ -320,6 +383,7 @@ function initializeStopwatch() {
 function initializeAlarms() {
     setAlarmBtn.addEventListener('click', setAlarm);
     dismissNotificationBtn.addEventListener('click', dismissNotification);
+    stopAlarmBtn.addEventListener('click', stopAlarmSound);
 }
 
 function setAlarm() {
@@ -436,27 +500,53 @@ function showNotification(title, message) {
 
 function dismissNotification() {
     notificationModal.style.display = 'none';
+    stopAlarmSound();
 }
 
 // Sound functionality
 function playAlarmSound() {
-    // Create audio context for beep sound
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
+    if (isAlarmPlaying) return; // Prevent multiple alarms
     
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+    // Create audio context for continuous beep sound
+    alarmAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+    alarmOscillator = alarmAudioContext.createOscillator();
+    alarmGainNode = alarmAudioContext.createGain();
     
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+    alarmOscillator.connect(alarmGainNode);
+    alarmGainNode.connect(alarmAudioContext.destination);
     
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    // Set up continuous alternating frequencies
+    let currentTime = alarmAudioContext.currentTime;
+    let frequency = 800;
     
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.5);
+    alarmOscillator.frequency.setValueAtTime(frequency, currentTime);
+    alarmGainNode.gain.setValueAtTime(0.3, currentTime);
+    
+    // Create alternating frequency pattern
+    const alternateFrequency = () => {
+        if (!isAlarmPlaying) return;
+        
+        frequency = frequency === 800 ? 600 : 800;
+        alarmOscillator.frequency.setValueAtTime(frequency, alarmAudioContext.currentTime);
+        
+        setTimeout(alternateFrequency, 200);
+    };
+    
+    alarmOscillator.start(currentTime);
+    isAlarmPlaying = true;
+    
+    // Start alternating frequencies after 200ms
+    setTimeout(alternateFrequency, 200);
+}
+
+function stopAlarmSound() {
+    if (isAlarmPlaying && alarmOscillator) {
+        alarmOscillator.stop();
+        alarmOscillator = null;
+        alarmGainNode = null;
+        alarmAudioContext = null;
+        isAlarmPlaying = false;
+    }
 }
 
 // Close modal when clicking outside
